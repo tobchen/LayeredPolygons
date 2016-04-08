@@ -25,8 +25,8 @@ def read(path: str) -> Scene:
     height = stack_root.attrib["h"]
 
     # TODO type hint list return
-    def get_imagelayers(x: int, y: int, tag: ElementTree.Element):
-        layers = []
+    def get_imagelayers(x: int, y: int, tag: ElementTree.Element) -> list:
+        layers = list()
 
         if "x" in tag.attrib:
             x += int(tag.attrib["x"])

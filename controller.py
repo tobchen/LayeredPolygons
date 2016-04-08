@@ -10,6 +10,8 @@ import ora
 
 
 class Controller:
+    SNAP_RADIUS = 5
+
     def __init__(self, tk: Tk):
         tk.title("Layered Polygons")
 
@@ -51,36 +53,43 @@ class Controller:
 
         self._scene = None
         self._current_layer = None
+        self._is_drawing_polygon = False
         self._tk = tk
 
-        self._canvas.bind("<Button-1>", self._canvas_click)
+        self._canvas.bind("<Button-1>", self._canvas_left_click)
         self._layer_list.bind("<<ListboxSelect>>", self._layer_change)
 
-    def _canvas_click(self, event):
-        print(event.x, ",", event.y)
+    def _canvas_left_click(self, event):
+        if not self._scene or not self._current_layer:
+            return
+        x, y = self._canvas.window_to_canvas_coords(event.x, event.y)
+
+        if self._is_drawing_polygon:
+            polygon = self._current_layer.get_polygon_at(
+                self._current_layer.get_polygon_count()-1)
+
+            # TODO Use -1 as list index for last (when get_vertex_at rewritten)
+            # Move vtx away from mouse to not interfere with search for closest
+            polygon.get_vertex_at(polygon.get_vertex_count()-1).\
+                set_coords(x-self.SNAP_RADIUS, y-self.SNAP_RADIUS)
+
+            closest_vertex = self._current_layer.get_closest_vertex(
+                x, y, self.SNAP_RADIUS)
+
+            if closest_vertex:
+                pass
+            else:
+                pass
+        else:
+            pass
 
     def _layer_change(self, event):
         selection = self._layer_list.curselection()
-        if len(selection) <= 0:
-            return
-        selected_index = selection[0]
-
-        layer = None
-        if self._scene:
-            layer = self._scene.get_layer_at(selected_index)
-        if not layer:
-            return None
-        self._current_layer = layer
-
-        self._canvas_redraw()
-
-    def _canvas_redraw(self):
-        self._canvas.delete(ALL)
-        if not self._current_layer:
-            return
-        (x, y) = self._current_layer.get_coords()
-        image = self._current_layer.get_image()
-        self._canvas.create_image(x, y, image=image, anchor=NW)
+        if len(selection) > 0 and self._scene:
+            layer = self._scene.get_layer_at(selection[0])
+            if layer:
+                self._current_layer = layer
+                self._canvas.notify_layer_change(self._current_layer)
 
     def _set_scene(self, scene: Scene):
         if scene.get_layer_count() <= 0:
