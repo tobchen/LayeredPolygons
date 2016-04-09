@@ -88,8 +88,7 @@ class Controller:
                     .set_coords(x, y)
                 polygon.add_vertex(Vertex(x, y))
 
-            self._canvas.notify_polygon_change(self._current_layer,
-                                               self._current_layer
+            self._canvas.notify_polygon_change(self._current_layer
                                                .get_polygon_count()-1)
         else:
             # Create start vertex or use already existing one
@@ -106,7 +105,7 @@ class Controller:
 
             self._is_drawing_polygon = True
 
-            self._canvas.notify_layer_change(self._current_layer)
+            self._canvas.notify_layer_change()
 
     def _canvas_right_click(self, event):
         if not self._current_layer:
@@ -119,15 +118,14 @@ class Controller:
             # TODO Delete polygon
             pass
 
-        self._canvas.notify_layer_change(self._current_layer)
+        self._canvas.notify_layer_change()
 
     def _canvas_mouse_moved(self, event):
         if self._is_drawing_polygon:
             x, y = self._canvas.window_to_canvas_coords(event.x, event.y)
             self._current_layer.get_polygon_at(-1).get_vertex_at(-1)\
                 .set_coords(x, y)
-            self._canvas.notify_polygon_change(self._current_layer,
-                                               self._current_layer
+            self._canvas.notify_polygon_change(self._current_layer
                                                .get_polygon_count()-1)
 
     def _layer_change(self, event):
@@ -137,7 +135,7 @@ class Controller:
             if layer:
                 self._is_drawing_polygon = False
                 self._current_layer = layer
-                self._canvas.notify_layer_change(self._current_layer)
+                self._canvas.notify_new_layer(self._current_layer)
 
     def _set_scene(self, scene: Scene):
         if scene.get_layer_count() <= 0:

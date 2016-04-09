@@ -4,7 +4,6 @@ from model import *
 from zipfile import ZipFile
 from xml.etree import ElementTree
 from PIL import Image
-from PIL.ImageTk import PhotoImage
 from io import BytesIO
 
 
@@ -41,8 +40,7 @@ def read(path: str) -> Scene:
             image = None
             if "src" in tag.attrib:
                 image_data = zipfile.read(tag.attrib["src"])
-                image_raw = Image.open(BytesIO(image_data))
-                image = PhotoImage(image_raw)
+                image = Image.open(BytesIO(image_data))
 
             if image:
                 layers.append(ImageLayer(name, x, y, image))

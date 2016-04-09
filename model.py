@@ -1,6 +1,6 @@
 __author__ = 'tobchen'
 
-from PIL.ImageTk import PhotoImage
+from PIL import Image
 import math
 
 
@@ -55,7 +55,7 @@ class Polygon:
 
 
 class ImageLayer:
-    def __init__(self, name: str, x: int, y: int, image: PhotoImage):
+    def __init__(self, name: str, x: int, y: int, image: Image):
         self._name = name
         self._x = x
         self._y = y
@@ -81,7 +81,7 @@ class ImageLayer:
     def get_coords(self) -> (int, int):
         return self._x, self._y
 
-    def get_image(self) -> PhotoImage:
+    def get_image(self) -> Image:
         return self._image
 
     def get_polygon_count(self) -> int:
