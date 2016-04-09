@@ -24,14 +24,16 @@ class LayPolyCanvas(Canvas):
         self.create_image(x, y, image=image, anchor=NW)
 
         for i in range(0, layer.get_polygon_count()):
-            coords = layer.get_polygon_at(i)
-            polygon = self.create_polygon(coords, fill="red")
+            coords = layer.get_polygon_at(i).get_vertex_coords_list()
+            polygon = self.create_polygon(coords, fill="", outline="red")
             self._polygons.append(polygon)
 
     def notify_polygon_change(self, layer: ImageLayer, index: int):
         try:
-            self._polygons[index].coords =\
-                layer.get_polygon_at(index).get_vertex_coords_list()
+            coords = layer.get_polygon_at(index).get_vertex_coords_list()
+            self.delete(self._polygons[index])
+            self._polygons[index] = self.create_polygon(coords, fill="",
+                                                        outline="red")
         except (ValueError, IndexError):
             pass
 

@@ -1,7 +1,7 @@
 __author__ = 'tobchen'
 
 from PIL.ImageTk import PhotoImage
-import math.hypot
+import math
 
 
 class Vertex:
@@ -18,8 +18,23 @@ class Vertex:
 
 
 class Polygon:
-    def __init__(self):
+    def __init__(self, vertices: list=None):
         self._vertices = list()
+        if vertices:
+            self._vertices.extend(vertices)
+
+    def add_vertex(self, vertex: Vertex):
+        self._vertices.append(vertex)
+
+    def remove_vertex_at(self, index: int):
+        try:
+            del self._vertices[index]
+        except IndexError:
+            pass
+
+    # TODO Implement
+    def contains(self, x: int, y: int) -> bool:
+        return False
 
     def get_vertex_coords_list(self) -> list:
         result = list()
@@ -32,11 +47,10 @@ class Polygon:
     def get_vertex_count(self) -> int:
         return len(self._vertices)
 
-    # TODO Use exceptions
     def get_vertex_at(self, index: int) -> Vertex:
-        if 0 <= index < len(self._vertices):
+        try:
             return self._vertices[index]
-        else:
+        except IndexError:
             return None
 
 
@@ -52,6 +66,15 @@ class ImageLayer:
     def set_name(self, name:  str):
         self._name = name
 
+    def add_polygon(self, polygon: Polygon):
+        self._polygons.append(polygon)
+
+    def remove_polygon_at(self, index: int):
+        try:
+            del self._polygons[index]
+        except IndexError:
+            pass
+
     def get_name(self) -> str:
         return self._name
 
@@ -64,11 +87,10 @@ class ImageLayer:
     def get_polygon_count(self) -> int:
         return len(self._polygons)
 
-    # TODO Use exceptions
     def get_polygon_at(self, index: int) -> Polygon:
-        if 0 <= index < len(self._polygons):
+        try:
             return self._polygons[index]
-        else:
+        except IndexError:
             return None
 
     def get_closest_vertex(self, x: int, y: int, radius: int) -> Vertex:
@@ -107,9 +129,8 @@ class Scene:
     def get_layer_count(self) -> int:
         return len(self._layers)
 
-    # TODO Use exceptions
     def get_layer_at(self, index: int) -> ImageLayer:
-        if 0 <= index < len(self._layers):
+        try:
             return self._layers[index]
-        else:
+        except IndexError:
             return None

@@ -4,7 +4,7 @@ from tkinter import Tk, Menu, filedialog, PanedWindow, Listbox, Frame, Canvas,\
     Scrollbar
 from tkinter import BOTH, SINGLE, HORIZONTAL, BOTTOM, X, VERTICAL, RIGHT, Y,\
     LEFT, ALL, NW, RAISED
-from model import Scene
+from model import Scene, Vertex, Polygon
 from view import LayPolyCanvas
 import ora
 
@@ -57,6 +57,8 @@ class Controller:
         self._tk = tk
 
         self._canvas.bind("<Button-1>", self._canvas_left_click)
+        self._canvas.bind("<Button-3>", self._canvas_right_click)
+        self._canvas.bind("<Motion>", self._canvas_mouse_moved)
         self._layer_list.bind("<<ListboxSelect>>", self._layer_change)
 
     def _canvas_left_click(self, event):
@@ -65,29 +67,75 @@ class Controller:
         x, y = self._canvas.window_to_canvas_coords(event.x, event.y)
 
         if self._is_drawing_polygon:
-            polygon = self._current_layer.get_polygon_at(
-                self._current_layer.get_polygon_count()-1)
+            polygon = self._current_layer.get_polygon_at(-1)
 
-            # TODO Use -1 as list index for last (when get_vertex_at rewritten)
             # Move vtx away from mouse to not interfere with search for closest
-            polygon.get_vertex_at(polygon.get_vertex_count()-1).\
+            polygon.get_vertex_at(-1).\
                 set_coords(x-self.SNAP_RADIUS, y-self.SNAP_RADIUS)
 
             closest_vertex = self._current_layer.get_closest_vertex(
                 x, y, self.SNAP_RADIUS)
 
             if closest_vertex:
-                pass
+                polygon.remove_vertex_at(-1)
+                if closest_vertex is polygon.get_vertex_at(0):
+                    self._is_drawing_polygon = False
+                else:
+                    polygon.add_vertex(closest_vertex)
+                    polygon.add_vertex(Vertex(x, y))
             else:
-                pass
+                polygon.get_vertex_at(-1)\
+                    .set_coords(x, y)
+                polygon.add_vertex(Vertex(x, y))
+
+            self._canvas.notify_polygon_change(self._current_layer,
+                                               self._current_layer
+                                               .get_polygon_count()-1)
         else:
+            # Create start vertex or use already existing one
+            start_vertex = self._current_layer\
+                .get_closest_vertex(x, y, self.SNAP_RADIUS)
+            if not start_vertex:
+                start_vertex = Vertex(x, y)
+
+            # Vertex for mouse cursor
+            next_vertex = Vertex(x, y)
+
+            self._current_layer.add_polygon(
+                Polygon([start_vertex, next_vertex]))
+
+            self._is_drawing_polygon = True
+
+            self._canvas.notify_layer_change(self._current_layer)
+
+    def _canvas_right_click(self, event):
+        if not self._current_layer:
+            return
+
+        if self._is_drawing_polygon:
+            self._current_layer.remove_polygon_at(-1)
+            self._is_drawing_polygon = False
+        else:
+            # TODO Delete polygon
             pass
+
+        self._canvas.notify_layer_change(self._current_layer)
+
+    def _canvas_mouse_moved(self, event):
+        if self._is_drawing_polygon:
+            x, y = self._canvas.window_to_canvas_coords(event.x, event.y)
+            self._current_layer.get_polygon_at(-1).get_vertex_at(-1)\
+                .set_coords(x, y)
+            self._canvas.notify_polygon_change(self._current_layer,
+                                               self._current_layer
+                                               .get_polygon_count()-1)
 
     def _layer_change(self, event):
         selection = self._layer_list.curselection()
         if len(selection) > 0 and self._scene:
             layer = self._scene.get_layer_at(selection[0])
             if layer:
+                self._is_drawing_polygon = False
                 self._current_layer = layer
                 self._canvas.notify_layer_change(self._current_layer)
 
