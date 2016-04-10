@@ -6,12 +6,12 @@ import math
 
 class Vertex:
     def __init__(self, x: int, y: int):
-        self._x = x
-        self._y = y
+        self._x = int(x)
+        self._y = int(y)
 
     def set_coords(self, x: int, y: int):
-        self._x = x
-        self._y = y
+        self._x = int(x)
+        self._y = int(y)
 
     def get_coords(self) -> (int, int):
         return self._x, self._y
@@ -56,15 +56,15 @@ class Polygon:
 
 class ImageLayer:
     def __init__(self, name: str, x: int, y: int, image: Image):
-        self._name = name
-        self._x = x
-        self._y = y
+        self._name = str(name)
+        self._x = int(x)
+        self._y = int(y)
         self._image = image
 
         self._polygons = list()
 
     def set_name(self, name:  str):
-        self._name = name
+        self._name = str(name)
 
     def add_polygon(self, polygon: Polygon):
         self._polygons.append(polygon)
@@ -109,22 +109,33 @@ class ImageLayer:
 
         return result
 
+    def get_vertex_list(self) -> list:
+        vertices = list()
+        for polygon in self._polygons:
+            for k in range(0, polygon.get_vertex_count()):
+                vertex = polygon.get_vertex_at(k)
+                is_in = False
+                for check in vertices:
+                    if check is vertex:
+                        is_in = True
+                        break
+                if not is_in:
+                    vertices.append(vertex)
+        return vertices
+
 
 class Scene:
     def __init__(self, width: int, height: int):
-        self._width = width
-        self._height = height
+        self._width = int(width)
+        self._height = int(height)
 
         self._layers = list()
 
     def add_layer(self, layer: ImageLayer):
         self._layers.append(layer)
 
-    def get_width(self) -> int:
-        return self._width
-
-    def get_height(self) -> int:
-        return self._height
+    def get_size(self) -> (int, int):
+        return self._width, self._height
 
     def get_layer_count(self) -> int:
         return len(self._layers)

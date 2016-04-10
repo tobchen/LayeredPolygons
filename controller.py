@@ -6,7 +6,7 @@ from tkinter import BOTH, SINGLE, HORIZONTAL, BOTTOM, X, VERTICAL, RIGHT, Y,\
     LEFT, ALL, NW, RAISED
 from model import Scene, Vertex, Polygon
 from view import LayPolyCanvas
-import ora
+import ora, obj
 
 
 class Controller:
@@ -24,7 +24,10 @@ class Controller:
         menu_file.add_command(label="Save")
         menu_file.add_command(label="Save As...")
         menu_file.add_separator()
-        menu_file.add_command(label="Export As...")
+        menu_export = Menu(menu_file, tearoff=0)
+        menu_export.add_command(label="Wavefront (.obj)...",
+                                command=self._export_obj)
+        menu_file.add_cascade(label="Export", menu=menu_export)
         menu_file.add_separator()
         menu_file.add_command(label="Quit", command=self._quit_app)
         menubar.add_cascade(label="File", menu=menu_file)
@@ -145,8 +148,8 @@ class Controller:
         self._scene = scene
 
         # Prepare canvas
-        self._canvas.config(scrollregion=(0, 0, self._scene.get_width(),
-                                          self._scene.get_height()))
+        width, height = self._scene.get_size()
+        self._canvas.config(scrollregion=(0, 0, width, height))
 
         # Empty listbox, fill it, select first entry
         self._layer_list.delete(0, self._layer_list.size()-1)
@@ -168,6 +171,19 @@ class Controller:
             return
 
         self._set_scene(scene)
+
+    def _export_obj(self):
+        if not self._scene:
+            return
+
+        path_obj = filedialog.asksaveasfilename(defaultextension=".obj",
+                                                filetypes=[("Wavefront object"
+                                                            + " files",
+                                                            ".obj")])
+        if not path_obj:
+            return
+        path_obj, path_mtl, path_data = obj.get_paths(path_obj)
+        obj.save(path_obj, path_mtl, path_data, self._scene)
 
     def _quit_app(self):
         self._tk.quit()
