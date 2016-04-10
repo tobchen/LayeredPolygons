@@ -114,12 +114,7 @@ class ImageLayer:
         for polygon in self._polygons:
             for k in range(0, polygon.get_vertex_count()):
                 vertex = polygon.get_vertex_at(k)
-                is_in = False
-                for check in vertices:
-                    if check is vertex:
-                        is_in = True
-                        break
-                if not is_in:
+                if vertex not in vertices:
                     vertices.append(vertex)
         return vertices
 

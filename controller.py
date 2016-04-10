@@ -6,7 +6,9 @@ from tkinter import BOTH, SINGLE, HORIZONTAL, BOTTOM, X, VERTICAL, RIGHT, Y,\
     LEFT, ALL, NW, RAISED
 from model import Scene, Vertex, Polygon
 from view import LayPolyCanvas
-import ora, obj
+import ora
+import obj
+import lp
 
 
 class Controller:
@@ -21,8 +23,8 @@ class Controller:
         menu_file.add_command(label="New...", command=self._new_scene)
         menu_file.add_command(label="Open...")
         menu_file.add_separator()
-        menu_file.add_command(label="Save")
-        menu_file.add_command(label="Save As...")
+        menu_file.add_command(label="Save", command=self._save_scene)
+        menu_file.add_command(label="Save As...", command=self._save_scene_as)
         menu_file.add_separator()
         menu_export = Menu(menu_file, tearoff=0)
         menu_export.add_command(label="Wavefront (.obj)...",
@@ -63,6 +65,8 @@ class Controller:
         self._canvas.bind("<Button-3>", self._canvas_right_click)
         self._canvas.bind("<Motion>", self._canvas_mouse_moved)
         self._layer_list.bind("<<ListboxSelect>>", self._layer_change)
+
+        self._current_path = None
 
     def _canvas_left_click(self, event):
         if not self._scene or not self._current_layer:
@@ -148,6 +152,7 @@ class Controller:
         self._scene = scene
 
         # Prepare canvas
+        # TODO Extra 10px padding for canvas
         width, height = self._scene.get_size()
         self._canvas.config(scrollregion=(0, 0, width, height))
 
@@ -171,6 +176,26 @@ class Controller:
             return
 
         self._set_scene(scene)
+        self._current_path = None
+
+    def _open_scene(self):
+        pass
+
+    def _save_scene(self):
+        if not self._current_path:
+            self._save_scene_as()
+            return
+        lp.save(self._current_path, self._scene)
+
+    def _save_scene_as(self):
+        if not self._scene:
+            return
+        path = filedialog.asksaveasfilename(defaultextension=".lp",
+                                            filetypes=[("Layered polygons"
+                                                        " files", ".lp")])
+        if path:
+            self._current_path = path
+            self._save_scene()
 
     def _export_obj(self):
         if not self._scene:
@@ -178,7 +203,7 @@ class Controller:
 
         path_obj = filedialog.asksaveasfilename(defaultextension=".obj",
                                                 filetypes=[("Wavefront object"
-                                                            + " files",
+                                                            " files",
                                                             ".obj")])
         if not path_obj:
             return
