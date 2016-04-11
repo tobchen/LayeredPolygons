@@ -1,9 +1,9 @@
 __author__ = 'tobchen'
 
-from tkinter import Tk, Menu, filedialog, PanedWindow, Listbox, Frame, Canvas,\
+from tkinter import Tk, Menu, filedialog, PanedWindow, Listbox, Frame,\
     Scrollbar
 from tkinter import BOTH, SINGLE, HORIZONTAL, BOTTOM, X, VERTICAL, RIGHT, Y,\
-    LEFT, ALL, NW, RAISED
+    LEFT, RAISED
 from model import Scene, Vertex, Polygon
 from view import LayPolyCanvas
 import ora
@@ -122,8 +122,11 @@ class Controller:
             self._current_layer.remove_polygon_at(-1)
             self._is_drawing_polygon = False
         else:
-            # TODO Delete polygon
-            pass
+            x, y = self._canvas.window_to_canvas_coords(event.x, event.y)
+            for i in range(0, self._current_layer.get_polygon_count()):
+                if self._current_layer.get_polygon_at(i).contains(x, y):
+                    self._current_layer.remove_polygon_at(i)
+                    break
 
         self._canvas.notify_layer_change()
 

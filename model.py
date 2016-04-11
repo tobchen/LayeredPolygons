@@ -32,9 +32,20 @@ class Polygon:
         except IndexError:
             pass
 
-    # TODO Implement
     def contains(self, x: int, y: int) -> bool:
-        return False
+        # Code from http://alienryderflex.com/polygon/
+        if len(self._vertices) < 3:
+            return False
+        result = False
+        vert1 = self._vertices[-1]
+        for vert2 in self._vertices:
+            x1, y1 = vert1.get_coords()
+            x2, y2 = vert2.get_coords()
+            if ((y1 < y <= y2) or (y2 < y <= y1))\
+                    and x2 + (y-y2) / (y1-y2) * (x1-x2) < x:
+                result = not result
+            vert1 = vert2
+        return result
 
     def get_vertex_coords_list(self) -> list:
         result = list()
