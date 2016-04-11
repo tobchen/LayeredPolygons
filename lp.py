@@ -15,7 +15,7 @@ def _get_tempfile_name() -> str:
     return file.name
 
 
-def save(path: str, scene: Scene):
+def save(path: str, scene: Scene) -> bool:
     # TODO First save to temp then move archive to specified path
 
     # Generate JSON
@@ -66,6 +66,8 @@ def save(path: str, scene: Scene):
 
     # BAMM, done!
     zip_file.close()
+
+    return True
 
 
 def read(path: str) -> Scene:

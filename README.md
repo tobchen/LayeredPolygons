@@ -28,7 +28,6 @@ right-clicking on the canvas. If the polygon is supposed to be greater than the
 current view port the scroll bars can be used without breaking anything.
 
 To delete a polygon when not in polygon creation mode right-click on it.
-(Currently not possible.)
 
 Finally export the layered polygons as a 3d model.
 

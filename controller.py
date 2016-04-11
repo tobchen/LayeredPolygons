@@ -1,7 +1,7 @@
 __author__ = 'tobchen'
 
 from tkinter import Tk, Menu, filedialog, PanedWindow, Listbox, Frame,\
-    Scrollbar
+    Scrollbar, messagebox
 from tkinter import BOTH, SINGLE, HORIZONTAL, BOTTOM, X, VERTICAL, RIGHT, Y,\
     LEFT, RAISED
 from model import Scene, Vertex, Polygon
@@ -147,10 +147,10 @@ class Controller:
                 self._current_layer = layer
                 self._canvas.notify_new_layer(self._current_layer)
 
-    def _set_scene(self, scene: Scene):
+    def _set_scene(self, scene: Scene) -> bool:
         if scene.get_layer_count() <= 0:
-            # TODO Error popup
-            return
+            messagebox.showerror("Error!", "Scene has no layers!")
+            return False
 
         self._scene = scene
 
@@ -166,6 +166,15 @@ class Controller:
         self._layer_list.selection_set(0)
         self._layer_list.event_generate("<<ListboxSelect>>")
 
+        return True
+
+    def _set_current_path(self, path):
+        self._current_path = path
+        if path:
+            self._tk.title(path + " - Layered Polygons")
+        else:
+            self._tk.title("Untitled - Layered Polygons")
+
     def _new_scene(self):
         path = filedialog.askopenfilename(defaultextension=".ora",
                                           filetypes=[("OpenRaster files",
@@ -175,11 +184,11 @@ class Controller:
 
         scene = ora.read(path)
         if not scene:
-            # TODO Error popup
+            messagebox.showerror("Error!", "File could not be opened!")
             return
 
-        self._set_scene(scene)
-        self._current_path = None
+        if self._set_scene(scene):
+            self._set_current_path(None)
 
     def _open_scene(self):
         path = filedialog.askopenfilename(defaultextension=".lp",
@@ -190,17 +199,23 @@ class Controller:
 
         scene = lp.read(path)
         if not scene:
-            # TODO Error popup
+            messagebox.showerror("Error!", "File could not be opened!")
             return
 
-        self._set_scene(scene)
-        self._current_path = path
+        if self._set_scene(scene):
+            self._set_current_path(path)
+
+    def _save_scene_help(self, path):
+        if lp.save(path, self._scene):
+            self._set_current_path(path)
+        else:
+            messagebox.showerror("Error!", "File could not be saved!")
 
     def _save_scene(self):
         if not self._current_path:
             self._save_scene_as()
             return
-        lp.save(self._current_path, self._scene)
+        self._save_scene_help(self._current_path)
 
     def _save_scene_as(self):
         if not self._scene:
@@ -209,9 +224,7 @@ class Controller:
                                             filetypes=[("Layered polygons"
                                                         " files", ".lp")])
         if path:
-            self._current_path = path
-            self._save_scene()
-            # TODO Set window name
+            self._save_scene_help(path)
 
     def _export_obj(self):
         if not self._scene:
