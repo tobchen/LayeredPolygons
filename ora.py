@@ -39,8 +39,7 @@ def read(path: str) -> Scene:
 
             image = None
             if "src" in tag.attrib:
-                image_data = zipfile.read(tag.attrib["src"])
-                image = Image.open(BytesIO(image_data))
+                image = Image.open(BytesIO(zipfile.read(tag.attrib["src"])))
 
             if image:
                 layers.append(ImageLayer(name, x, y, image))

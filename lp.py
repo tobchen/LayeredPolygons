@@ -1,10 +1,12 @@
 __author__ = 'tobchen'
 
-from model import Scene
+from model import Scene, ImageLayer, Polygon, Vertex
 import tempfile
 import json
-import zipfile
+from zipfile import ZipFile
 import os
+from PIL import Image
+from io import BytesIO
 
 
 def _get_tempfile_name() -> str:
@@ -44,7 +46,7 @@ def save(path: str, scene: Scene):
         json_scene["layers"].append(json_layer)
 
     # Archive
-    zip_file = zipfile.ZipFile(path, 'w')
+    zip_file = ZipFile(path, 'w')
 
     # Save JSON
     temp_json = _get_tempfile_name()
@@ -67,5 +69,54 @@ def save(path: str, scene: Scene):
 
 
 def read(path: str) -> Scene:
-    # TODO Yeah, obviously
-    pass
+    zipfile = ZipFile(path, 'r')
+
+    # Read data
+    data_file = zipfile.open('data.json', 'r')
+    if not data_file:
+        zipfile.close()
+        return None
+    json_scene = json.loads(data_file.read().decode("utf-8"))
+    data_file.close()
+
+    try:
+        scene = Scene(json_scene["width"], json_scene["height"])
+    except KeyError:
+        zipfile.close()
+        return None
+
+    if "layers" in json_scene:
+        for i in range(0, len(json_scene["layers"])):
+            json_layer = json_scene["layers"][i]
+            name = "Layer " + str(i)
+            if "name" in json_layer:
+                name = json_layer["name"]
+
+            try:
+                layer = ImageLayer(name, json_layer["x"], json_layer["y"],
+                                   Image.open(BytesIO(zipfile.read(
+                                       json_layer["image"]))))
+            except KeyError:  # TODO Find out about image loading errors
+                continue
+
+            vertices = list()
+            if "vertices" in json_layer:
+                for json_vertex in json_layer["vertices"]:
+                    try:
+                        vertices.append(Vertex(json_vertex["x"],
+                                               json_vertex["y"]))
+                    except KeyError:
+                        pass
+
+            if "polygons" in json_layer:
+                for json_polygon in json_layer["polygons"]:
+                    polygon = Polygon()
+                    for index in json_polygon:
+                        polygon.add_vertex(vertices[index])
+                    layer.add_polygon(polygon)
+
+            scene.add_layer(layer)
+
+    zipfile.close()
+
+    return scene

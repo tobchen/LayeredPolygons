@@ -21,7 +21,7 @@ class Controller:
 
         menu_file = Menu(menubar, tearoff=0)
         menu_file.add_command(label="New...", command=self._new_scene)
-        menu_file.add_command(label="Open...")
+        menu_file.add_command(label="Open...", command=self._open_scene)
         menu_file.add_separator()
         menu_file.add_command(label="Save", command=self._save_scene)
         menu_file.add_command(label="Save As...", command=self._save_scene_as)
@@ -29,7 +29,7 @@ class Controller:
         menu_export = Menu(menu_file, tearoff=0)
         menu_export.add_command(label="Wavefront (.obj)...",
                                 command=self._export_obj)
-        menu_file.add_cascade(label="Export", menu=menu_export)
+        menu_file.add_cascade(label="Export As", menu=menu_export)
         menu_file.add_separator()
         menu_file.add_command(label="Quit", command=self._quit_app)
         menubar.add_cascade(label="File", menu=menu_file)
@@ -179,7 +179,19 @@ class Controller:
         self._current_path = None
 
     def _open_scene(self):
-        pass
+        path = filedialog.askopenfilename(defaultextension=".lp",
+                                          filetypes=[("Layered polygons"
+                                                      " files", ".lp")])
+        if not path:
+            return
+
+        scene = lp.read(path)
+        if not scene:
+            # TODO Error popup
+            return
+
+        self._set_scene(scene)
+        self._current_path = path
 
     def _save_scene(self):
         if not self._current_path:
@@ -196,6 +208,7 @@ class Controller:
         if path:
             self._current_path = path
             self._save_scene()
+            # TODO Set window name
 
     def _export_obj(self):
         if not self._scene:
